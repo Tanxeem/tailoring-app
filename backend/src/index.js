@@ -5,6 +5,7 @@ import { PORT } from './config/serverConfig.js';
 import cors from 'cors';
 import userRoutes from './routes/user.routes.js'
 import cookiesparser from 'cookie-parser'
+import adminRoutes from './routes/admin.routes.js';
 
 
 const app = express();
@@ -28,6 +29,7 @@ app.use(cors({
 // router
 
 app.use('/api/v1/user', userRoutes)
+app.use('/api/v1/admin', adminRoutes)
 
 
 app.get('/ping', (req, res) => {

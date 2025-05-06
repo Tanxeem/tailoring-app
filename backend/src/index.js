@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(cookiesparser());
 
-const allowedOrigins = ["http://localhost:5172", "http://localhost:5173"];
+const allowedOrigins = "http://localhost:5173";
 
 app.use(cors({
   origin: allowedOrigins,
@@ -27,7 +27,7 @@ app.use(cors({
 
 // router
 
-app.use('/api/user', userRoutes)
+app.use('/api/v1/user', userRoutes)
 
 
 app.get('/ping', (req, res) => {

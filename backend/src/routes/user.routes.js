@@ -6,11 +6,11 @@ import { allUsers, getUser, logIn, logOut, removeUser, signUp, updateUser } from
 
 const userRoutes = express.Router();
 
-userRoutes.post('/signup',validate(userRegistrationValidator), signUp)
+userRoutes.post('/create-user',validate(userRegistrationValidator), signUp)
 userRoutes.post('/login', validate(userLoginValidator), logIn)
 userRoutes.post('/logout', isLoggedIn, logOut)
 userRoutes.get('/allusers/:id', allUsers)
-userRoutes.get('/getuser',isLoggedIn, getUser)
+userRoutes.get('/me',isLoggedIn, getUser)
 userRoutes.post('/remove',isLoggedIn, removeUser)
 userRoutes.patch('/update/:id',isLoggedIn, updateUser)
 

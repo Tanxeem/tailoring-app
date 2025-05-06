@@ -16,7 +16,6 @@ export const isLoggedIn = async(req, res, next) => {
             const decode = jwt.verify(token, ACCESS_TOKEN_SECRET);
 
             const user = await User.findById(decode?._id);
-            console.log("user after decode", user);
             if(!user){
                 return res.status(401).json({
                     success: false,

@@ -13,6 +13,8 @@ import AllUsers from "./pages/admin/AllUsers";
 import CreateMeasurement from "./pages/admin/CreateMeasurement";
 import CreateUsers from "./pages/admin/CreateUsers";
 import Dashboard from "./pages/admin/Dashboard";
+import ProtectedRoute from "./pages/auth/ProtectedRoute";
+import ClientDetails from "./pages/admin/ClientDetails";
 
 function App() {
   return (
@@ -51,12 +53,16 @@ function App() {
         <Route path="/login" element={<Login />} />
 
         {/* Admin Dashboard Routes */}
+        <Route element={<ProtectedRoute />}>
         <Route path="/admin" element={<DashboardLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="create-user" element={<CreateUsers />} />
           <Route path="users" element={<AllUsers />} />
           <Route path="create-measurement" element={<CreateMeasurement />} />
+          <Route path="client-details" element={<ClientDetails />} />
         </Route>
+        </Route>
+
       </Routes>
     </>
   );

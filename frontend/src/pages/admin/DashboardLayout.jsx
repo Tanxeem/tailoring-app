@@ -1,14 +1,33 @@
 import { useState } from 'react';
 import { FiSearch, FiLogOut, FiUserPlus, FiUsers, FiScissors } from 'react-icons/fi';
 import { useNavigate, Outlet } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import axios from 'axios'; 
+import { MdDashboard } from "react-icons/md";
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleLogout = () => {
-    // Add logout logic
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      // Perform logout request
+      const response = await axios.post('http://localhost:3000/api/v1/user/logout', {}, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,  // Make sure cookies are sent along with the request
+      });
+
+      // Check if response status is OK
+      if (response.status === 200) {
+        toast.success(response.data.message);  // Show success toast
+        navigate('/login');  // Redirect to login page after logout
+      }
+    } catch (err) {
+      // Handle errors
+      toast.error(err.response?.data?.message || "An error occurred");
+    }
   };
 
   return (
@@ -54,6 +73,15 @@ const DashboardLayout = () => {
         <aside className="w-64 bg-white shadow hidden md:block">
           <nav className="p-4">
             <ul className="space-y-2">
+            <li>
+                <button
+                  onClick={() => navigate('/admin/dashboard')}
+                  className="w-full flex items-center p-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600"
+                >
+                  <MdDashboard className="mr-3 text-lg" />
+                  <span>Dashboard</span>
+                </button>
+              </li>
               <li>
                 <button
                   onClick={() => navigate('/admin/create-user')}
@@ -79,6 +107,15 @@ const DashboardLayout = () => {
                 >
                   <FiScissors className="mr-3 text-lg" />
                   <span>Create Measurement</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => navigate('/admin/client-details')}
+                  className="w-full flex items-center p-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600"
+                >
+                  <FiScissors className="mr-3 text-lg" />
+                  <span>Client Details</span>
                 </button>
               </li>
             </ul>

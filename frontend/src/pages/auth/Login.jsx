@@ -1,31 +1,48 @@
 import { motion } from 'framer-motion';
 import { FiMail, FiLock, FiArrowRight } from 'react-icons/fi';
 import { useState } from 'react';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import { useNavigate } from 'react-router';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-
+    setError('');  // Reset any previous error message
+  
     try {
-      // Add your authentication logic here
-      console.log('Logging in with:', { email, password });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Redirect on successful login
-      
+      // Perform the login request
+      const response = await axios.post('http://localhost:3000/api/v1/user/login', { email, password }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,  // Make sure cookies are sent along with the request
+      });
+  
+      // Check if response status is OK
+      if (response.status === 200) {
+        toast.success(response.data.message);  // Show success toast
+        navigate('/admin');  // Redirect to /admin page
+      }
     } catch (err) {
-      setError('Invalid email or password');
+      // Handle any errors that occur during the login process
+      console.log('Error logging in:', err);
+      if (err.response) {
+        toast.error(err.response.data.message);  // Display error message from server
+        setError(err.response.data.message);  // Display error in UI
+      } else {
+        toast.error("An error occurred. Please try again.");  // Generic error message
+        setError('Something went wrong. Please try again later.');  // Display fallback error in UI
+      }
     } finally {
-      setLoading(false);
+      setLoading(false);  // Reset loading state
     }
   };
 

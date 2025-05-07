@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import User from "../models/user.models.js";
 
 
@@ -186,7 +187,7 @@ export const logOut = async (req, res) => {
 
 
 export const removeUser = async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
   
     // Validate `_id` input
     if (!id) {
@@ -243,3 +244,49 @@ export const removeUser = async (req, res) => {
       });
     }
   };
+
+  export const updatePassword = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const {password, confirmPassword} = req.body;
+        if(!password || !confirmPassword){
+            return res.status(400).json({
+                success: false,
+                message: "Password and Confirm Password is required."
+            })
+        }
+
+        if (password !== confirmPassword) {
+          return res.status(400).json({
+            success: false,
+            message: "Passwords do not match."
+          });
+        }
+
+        const user = await User.findById(id);
+    console.log("update id ", user);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    user.password = password;
+    user.markModified('password');
+    await user.save();
+
+  return res.status(200).json({
+            success: true,
+            message: "Password updated successfully",
+            user: user,
+        });
+} catch (error) {
+  return res.status(500).json({
+    success: false,
+    message: "Internal server error.",
+    error: error.message,
+  });
+}
+};

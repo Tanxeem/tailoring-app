@@ -22,6 +22,7 @@ const ClientDetails = () => {
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [editForm, setEditForm] = useState({
     customerName: '',
     email: '',
@@ -89,6 +90,7 @@ const ClientDetails = () => {
 
   const handleSave = async () => {
     try {
+      setSaving(true);
       const response = await axios.put(
         `http://localhost:3000/api/v1/admin/update/${selectedClient._id}`,
         editForm,
@@ -104,13 +106,18 @@ const ClientDetails = () => {
         setClients(clients.map(client => 
           client._id === selectedClient._id ? response.data.client : client
         ));
-        setSelectedClient(response.data.client);
+        setSelectedClient({
+          ...response.data.client,
+          updatedAt: new Date().toISOString() 
+        });
         setIsEditing(false);
         toast.success('Client updated successfully');
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update client');
       console.error(error);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -367,11 +374,17 @@ const ClientDetails = () => {
                     </h1>
                   )}
                   <div className="flex items-center mt-2">
-                    <span className="text-sm flex items-center" style={{ color: COLORS.text }}>
-                      <FiCalendar className="mr-1" />
-                      Created: {new Date(selectedClient.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
+  <span className="text-sm flex items-center" style={{ color: COLORS.text }}>
+    <FiCalendar className="mr-1" />
+    Created: {new Date(selectedClient.createdAt).toLocaleDateString()}
+    {selectedClient.updatedAt && (
+      <>
+        <span className="mx-2">•</span>
+        Updated: {new Date(selectedClient.updatedAt).toLocaleDateString()}
+      </>
+    )}
+  </span>
+</div>
                 </div>
 
                 {/* Client Details */}
@@ -537,20 +550,31 @@ const ClientDetails = () => {
                 {isEditing && (
                   <div className="p-6 border-t" style={{ borderColor: '#E0D6C9' }}>
                     <motion.button
-                      onClick={handleSave}
-                      className="w-full py-3 rounded-lg font-medium flex items-center justify-center"
-                      style={{ 
-                        backgroundColor: COLORS.primary,
-                        color: 'white'
-                      }}
-                      whileHover={{ 
-                        scale: 1.01,
-                        boxShadow: '0 4px 12px rgba(139, 107, 74, 0.3)'
-                      }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      Save Changes
-                    </motion.button>
+  onClick={handleSave}
+  className="w-full py-3 rounded-lg font-medium flex items-center justify-center"
+  style={{ 
+    backgroundColor: COLORS.primary,
+    color: 'white'
+  }}
+  whileHover={{ 
+    scale: 1.01,
+    boxShadow: '0 4px 12px rgba(139, 107, 74, 0.3)'
+  }}
+  whileTap={{ scale: 0.98 }}
+  disabled={saving}
+>
+  {saving ? (
+    <>
+      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Saving...
+    </>
+  ) : (
+    'Save Changes'
+  )}
+</motion.button>
                   </div>
                 )}
               </div>

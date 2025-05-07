@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiUser, FiPhone, FiMapPin, FiMail, 
   FiEdit2, FiTrash2, FiChevronLeft, 
-  FiScissors, FiCalendar, FiPlus 
+  FiScissors, FiCalendar 
 } from 'react-icons/fi';
 import { CiRuler } from 'react-icons/ci';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const ClientDetails = () => {
   // Luxury color palette
@@ -17,61 +19,63 @@ const ClientDetails = () => {
     text: '#333333' // Dark charcoal
   };
 
-  // Sample client data
-  const [clients, setClients] = useState([
-    {
-      id: 1,
-      name: 'James Wilson',
-      phone: '+1 (555) 123-4567',
-      email: 'james@example.com',
-      address: '123 Fashion Ave, New York, NY',
-      createdDate: '2023-01-15',
-      measurements: {
-        shoulder: 42,
-        chest: 98,
-        waist: 82,
-        hips: 96,
-        sleeveLength: 64,
-        length: 76,
-        neck: 38,
-        cuff: 24
-      }
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      phone: '+1 (555) 987-6543',
-      email: 'sarah@example.com',
-      address: '456 Tailor St, Boston, MA',
-      createdDate: '2023-02-20',
-      measurements: {
-        shoulder: 38,
-        chest: 92,
-        waist: 76,
-        hips: 94,
-        sleeveLength: 62,
-        length: 74,
-        neck: 36,
-        cuff: 22
-      }
-    }
-  ]);
-
+  const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({});
+  const [editForm, setEditForm] = useState({
+    customerName: '',
+    email: '',
+    phone: '',
+    address: '',
+    shoulder: '',
+    chest: '',
+    waist: '',
+    hips: '',
+    sleeveLength: '',
+    length: '',
+    neck: '',
+    cuff: '',
+    notes: ''
+  });
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const fetchDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:3000/api/v1/admin/client-details', {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true
+      });
+      if(response.status === 200) {
+        setClients(response.data.clients);
+      }
+    } catch (error) {
+      console.log("Error", error);
+      toast.error(error.response?.data?.message || 'Failed to fetch clients');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchDetails();
+  }, []);
 
   // Filter clients based on search
   const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.phone.includes(searchTerm) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase())
+    client.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.phone?.includes(searchTerm) ||
+    client.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSelectClient = (client) => {
     setSelectedClient(client);
-    setEditForm({ ...client });
+    setEditForm({ 
+      ...client // Directly spread all properties including measurements
+    });
     setIsEditing(false);
   };
 
@@ -83,46 +87,82 @@ const ClientDetails = () => {
     }));
   };
 
-  const handleSave = () => {
-    setClients(clients.map(client => 
-      client.id === selectedClient.id ? editForm : client
-    ));
-    setSelectedClient(editForm);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const response = await axios.put(
+        `http://localhost:3000/api/v1/admin/update/${selectedClient._id}`,
+        editForm,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true
+        }
+      );
+      
+      if(response.status === 200) {
+        setClients(clients.map(client => 
+          client._id === selectedClient._id ? response.data.client : client
+        ));
+        setSelectedClient(response.data.client);
+        setIsEditing(false);
+        toast.success('Client updated successfully');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update client');
+      console.error(error);
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this client?')) {
-      setClients(clients.filter(client => client.id !== id));
-      if (selectedClient && selectedClient.id === id) {
-        setSelectedClient(null);
+      try {
+        const response = await axios.delete(
+          `http://localhost:3000/api/v1/admin/remove/${id}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            withCredentials: true
+          }
+        );
+        
+        if(response.status === 200) {
+          setClients(clients.filter(client => client._id !== id));
+          if (selectedClient && selectedClient._id === id) {
+            setSelectedClient(null);
+          }
+          toast.success('Client deleted successfully');
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to delete client');
+        console.error(error);
       }
     }
   };
 
-  const handleAddNew = () => {
-    const newClient = {
-      id: Math.max(...clients.map(c => c.id), 0) + 1,
-      name: '',
-      phone: '',
-      email: '',
-      address: '',
-      createdDate: new Date().toISOString().split('T')[0],
-      measurements: {
-        shoulder: '',
-        chest: '',
-        waist: '',
-        hips: '',
-        sleeveLength: '',
-        length: '',
-        neck: '',
-        cuff: ''
-      }
-    };
-    setClients([...clients, newClient]);
-    handleSelectClient(newClient);
-    setIsEditing(true);
-  };
+  // Measurement fields to display
+  const measurementFields = [
+    { key: 'shoulder', label: 'Shoulder' },
+    { key: 'chest', label: 'Chest' },
+    { key: 'waist', label: 'Waist' },
+    { key: 'hips', label: 'Hips' },
+    { key: 'sleeveLength', label: 'Sleeve Length' },
+    { key: 'length', label: 'Length' },
+    { key: 'neck', label: 'Neck' },
+    { key: 'cuff', label: 'Cuff' }
+  ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: COLORS.background }}>
+        <div className="text-center">
+          <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" style={{ borderColor: COLORS.primary }}></div>
+          <p className="mt-2" style={{ color: COLORS.primary }}>Loading clients...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.background }}>
@@ -154,7 +194,7 @@ const ClientDetails = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            {/* Search and Add New */}
+            {/* Search  */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div className="relative w-full sm:w-64">
                 <input
@@ -170,93 +210,85 @@ const ClientDetails = () => {
                 />
                 <FiUser className="absolute left-3 top-3 text-gray-400" />
               </div>
-              
-              <motion.button
-                onClick={handleAddNew}
-                className="px-4 py-2 rounded-lg font-medium flex items-center"
-                style={{ 
-                  backgroundColor: COLORS.primary,
-                  color: 'white'
-                }}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <FiPlus className="mr-2" />
-                Add New Client
-              </motion.button>
             </div>
 
             {/* Clients Table */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b" style={{ borderColor: '#E0D6C9' }}>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Phone</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Created</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y" style={{ divideColor: '#E0D6C9' }}>
-                    {filteredClients.map(client => (
-                      <tr 
-                        key={client.id} 
-                        className="hover:bg-gray-50 cursor-pointer"
-                        onClick={() => handleSelectClient(client)}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${COLORS.primary}20` }}>
-                              <FiUser style={{ color: COLORS.primary }} />
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium" style={{ color: COLORS.text }}>{client.name}</div>
-                              <div className="text-xs" style={{ color: COLORS.accent }}>{client.address.split(',')[0]}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.text }}>
-                          {client.phone}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.text }}>
-                          {client.email}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.text }}>
-                          {client.createdDate}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex justify-end space-x-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSelectClient(client);
-                                setIsEditing(true);
-                              }}
-                              className="p-2 rounded-full hover:bg-gray-100"
-                              style={{ color: COLORS.primary }}
-                            >
-                              <FiEdit2 />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(client.id);
-                              }}
-                              className="p-2 rounded-full hover:bg-red-50"
-                              style={{ color: '#DC2626' }}
-                            >
-                              <FiTrash2 />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {filteredClients.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+                <p style={{ color: COLORS.text }}>No clients found</p>
               </div>
-            </div>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b" style={{ borderColor: '#E0D6C9' }}>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Name</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Phone</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Email</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Created</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y" style={{ divideColor: '#E0D6C9' }}>
+                      {filteredClients.map(client => (
+                        <tr 
+                          key={client._id} 
+                          className="hover:bg-gray-50 cursor-pointer"
+                          onClick={() => handleSelectClient(client)}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${COLORS.primary}20` }}>
+                                <FiUser style={{ color: COLORS.primary }} />
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-medium" style={{ color: COLORS.text }}>{client.customerName}</div>
+                                <div className="text-xs" style={{ color: COLORS.accent }}>{client.address?.split(',')[0]}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.text }}>
+                            {client.phone}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.text }}>
+                            {client.email}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.text }}>
+                            {new Date(client.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div className="flex justify-end space-x-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSelectClient(client);
+                                  setIsEditing(true);
+                                }}
+                                className="p-2 rounded-full hover:bg-gray-100"
+                                style={{ color: COLORS.primary }}
+                              >
+                                <FiEdit2 />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(client._id);
+                                }}
+                                className="p-2 rounded-full hover:bg-red-50"
+                                style={{ color: '#DC2626' }}
+                              >
+                                <FiTrash2 />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -264,7 +296,7 @@ const ClientDetails = () => {
         {selectedClient && (
           <AnimatePresence>
             <motion.div
-              key={selectedClient.id}
+              key={selectedClient._id}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -297,7 +329,7 @@ const ClientDetails = () => {
                   </motion.button>
                   
                   <motion.button
-                    onClick={() => handleDelete(selectedClient.id)}
+                    onClick={() => handleDelete(selectedClient._id)}
                     className="px-4 py-2 rounded-lg flex items-center bg-red-100"
                     style={{ color: '#DC2626' }}
                     whileHover={{ scale: 1.03 }}
@@ -319,8 +351,8 @@ const ClientDetails = () => {
                   {isEditing ? (
                     <input
                       type="text"
-                      name="name"
-                      value={editForm.name}
+                      name="customerName"
+                      value={editForm.customerName || ''}
                       onChange={handleEditChange}
                       className="w-full px-4 py-2 rounded-lg border text-2xl font-serif font-bold"
                       style={{ 
@@ -331,13 +363,13 @@ const ClientDetails = () => {
                     />
                   ) : (
                     <h1 className="text-2xl font-serif font-bold" style={{ color: COLORS.primary }}>
-                      {selectedClient.name}
+                      {selectedClient.customerName}
                     </h1>
                   )}
                   <div className="flex items-center mt-2">
                     <span className="text-sm flex items-center" style={{ color: COLORS.text }}>
                       <FiCalendar className="mr-1" />
-                      Created: {selectedClient.createdDate}
+                      Created: {new Date(selectedClient.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
@@ -364,7 +396,7 @@ const ClientDetails = () => {
                               <input
                                 type="tel"
                                 name="phone"
-                                value={editForm.phone}
+                                value={editForm.phone || ''}
                                 onChange={handleEditChange}
                                 className="pl-10 w-full px-4 py-2 rounded-lg border"
                                 style={{ 
@@ -376,7 +408,7 @@ const ClientDetails = () => {
                           ) : (
                             <p className="flex items-center">
                               <FiPhone className="mr-2 text-gray-400" />
-                              {selectedClient.phone}
+                              {selectedClient.phone || 'N/A'}
                             </p>
                           )}
                         </div>
@@ -393,7 +425,7 @@ const ClientDetails = () => {
                               <input
                                 type="email"
                                 name="email"
-                                value={editForm.email}
+                                value={editForm.email || ''}
                                 onChange={handleEditChange}
                                 className="pl-10 w-full px-4 py-2 rounded-lg border"
                                 style={{ 
@@ -405,7 +437,7 @@ const ClientDetails = () => {
                           ) : (
                             <p className="flex items-center">
                               <FiMail className="mr-2 text-gray-400" />
-                              {selectedClient.email}
+                              {selectedClient.email || 'N/A'}
                             </p>
                           )}
                         </div>
@@ -421,7 +453,7 @@ const ClientDetails = () => {
                               </div>
                               <textarea
                                 name="address"
-                                value={editForm.address}
+                                value={editForm.address || ''}
                                 onChange={handleEditChange}
                                 className="pl-10 w-full px-4 py-2 rounded-lg border"
                                 style={{ 
@@ -434,12 +466,30 @@ const ClientDetails = () => {
                           ) : (
                             <p className="flex items-start">
                               <FiMapPin className="mr-2 mt-1 text-gray-400" />
-                              {selectedClient.address.split('\n').map((line, i) => (
-                                <span key={i}>
-                                  {line}
-                                  <br />
-                                </span>
-                              ))}
+                              {selectedClient.address || 'N/A'}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-1" style={{ color: COLORS.text }}>
+                            Notes
+                          </label>
+                          {isEditing ? (
+                            <textarea
+                              name="notes"
+                              value={editForm.notes || ''}
+                              onChange={handleEditChange}
+                              className="w-full px-4 py-2 rounded-lg border"
+                              style={{ 
+                                borderColor: '#E0D6C9',
+                                backgroundColor: '#FCFAF7',
+                                minHeight: '80px'
+                              }}
+                            />
+                          ) : (
+                            <p className="flex items-start">
+                              {selectedClient.notes || 'No notes available'}
                             </p>
                           )}
                         </div>
@@ -453,15 +503,29 @@ const ClientDetails = () => {
                       </h2>
                       
                       <div className="grid grid-cols-2 gap-4">
-                        {Object.entries(selectedClient.measurements).map(([key, value]) => (
+                        {measurementFields.map(({ key, label }) => (
                           <div key={key} className="bg-gray-50 p-3 rounded-lg">
                             <label className="block text-xs font-medium uppercase tracking-wider mb-1 flex items-center" style={{ color: COLORS.text }}>
                               <CiRuler className="mr-1" />
-                              {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                              {label}
                             </label>
-                            <p className="text-lg font-light" style={{ color: COLORS.primary }}>
-                              {value}
-                            </p>
+                            {isEditing ? (
+                              <input
+                                type="number"
+                                name={key} // Changed from measurements.key to just key
+                                value={editForm[key] || ''}
+                                onChange={handleEditChange}
+                                className="w-full px-2 py-1 rounded border"
+                                style={{ 
+                                  borderColor: '#E0D6C9',
+                                  backgroundColor: 'white'
+                                }}
+                              />
+                            ) : (
+                              <p className="text-lg font-light" style={{ color: COLORS.primary }}>
+                                {selectedClient[key] || 'N/A'}
+                              </p>
+                            )}
                           </div>
                         ))}
                       </div>

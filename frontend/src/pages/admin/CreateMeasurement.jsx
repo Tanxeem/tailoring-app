@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiUser, FiPhone, FiMapPin, FiMail, FiScissors, FiSave } from 'react-icons/fi';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const CreateMeasurement = () => {
   // Luxury color palette
@@ -41,10 +43,37 @@ const CreateMeasurement = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Measurement created:', formData);
-    // Add your form submission logic here
+    try {
+      const response = await axios.post('http://localhost:3000/api/v1/admin/create-measurement', formData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true
+      });
+      if(response.status === 200) {
+        toast.success(response.data.message);
+        setFormData({
+          customerName: '',
+          phone: '',
+          address: '',
+          email: '',
+          shoulder: '',
+          chest: '',
+          waist: '',
+          hips: '',
+          sleeveLength: '',
+          length: '',
+          neck: '',
+          cuff: '',
+          notes: ''
+        });
+      }
+    } catch (error) {
+      console.log("Error", error);
+      toast.error(error.response.data.message);
+    }
   };
 
   return (

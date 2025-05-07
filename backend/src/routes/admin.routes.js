@@ -7,7 +7,7 @@ const adminRoutes = express.Router();
 adminRoutes.post('/create-measurement',isLoggedIn, createMeasurement)
 adminRoutes.get('/client-details', isLoggedIn, allClients)
 adminRoutes.delete('/remove/:id',isLoggedIn, removeClient)
-adminRoutes.patch('/update/:id',isLoggedIn, updateClient)
+adminRoutes.put('/update/:id',isLoggedIn, updateClient)
 
 
 export default adminRoutes;

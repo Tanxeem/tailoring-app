@@ -29,7 +29,7 @@ const Login = () => {
       // Check if response status is OK
       if (response.status === 200) {
         toast.success(response.data.message);  // Show success toast
-        navigate('/admin');  // Redirect to /admin page
+        navigate('/admin/dashboard');  // Redirect to /admin page
       }
     } catch (err) {
       // Handle any errors that occur during the login process

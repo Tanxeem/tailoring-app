@@ -67,7 +67,6 @@ export const createMeasurement = async (req, res) => {
 export const allClients = async (req, res) => {
     try {
         const clients =await Client.find({});
-        console.log("Clients Details", clients)
     if(!clients){
         res.status(401).json({
             success:false,
@@ -80,7 +79,6 @@ export const allClients = async (req, res) => {
         clients
     })
     } catch (error) {
-        console.log(error)
         return res.status(500).json({
             success:false,
             message:['internal server error', error.message]
@@ -90,10 +88,8 @@ export const allClients = async (req, res) => {
 
 export const removeClient =async (req, res) => {
     const { id } = req.params;
-    console.log("here is id",id)
     try {
         const client = await Client.findByIdAndDelete(id);
-        console.log("Client Details", client)  
         if(!client){
             return res.status(404).json({
                 success: false,
@@ -113,6 +109,26 @@ export const removeClient =async (req, res) => {
     }
 }
 
-export const updateClient = (req, res) => {
-    
+export const updateClient = async (req, res) => {
+    const {id} = req.params;
+    try {
+        const client =await Client.findByIdAndUpdate(id, req.body, {new: true});
+        if(!client){
+            return res.status(404).json({
+                success: false,
+                message: "Client not found"
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Client updated successfully",
+            client
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: ["Internal Server Error", error.message]
+        })
+    }
 }
+      

@@ -1,7 +1,7 @@
 import express from 'express';
 
 import connectDB from './config/dbConfig.js';
-import { PORT } from './config/serverConfig.js';
+import { ALLOW_ORIGINS, PORT } from './config/serverConfig.js';
 import cors from 'cors';
 import userRoutes from './routes/user.routes.js'
 import cookiesparser from 'cookie-parser'
@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(cookiesparser());
 
-const allowedOrigins = "http://localhost:5173";
+const allowedOrigins = ALLOW_ORIGINS;
 
 app.use(cors({
   origin: allowedOrigins,

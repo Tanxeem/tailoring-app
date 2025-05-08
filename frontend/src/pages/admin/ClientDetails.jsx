@@ -8,6 +8,7 @@ import {
 import { CiRuler } from 'react-icons/ci';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import {backendUrl} from '../../App';
 
 const ClientDetails = () => {
   // Luxury color palette
@@ -44,7 +45,7 @@ const ClientDetails = () => {
   const fetchDetails = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:3000/api/v1/admin/client-details', {
+      const response = await axios.get(`${backendUrl}/api/v1/admin/client-details`, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -92,7 +93,7 @@ const ClientDetails = () => {
     try {
       setSaving(true);
       const response = await axios.put(
-        `http://localhost:3000/api/v1/admin/update/${selectedClient._id}`,
+        `${backendUrl}/api/v1/admin/update/${selectedClient._id}`,
         editForm,
         {
           headers: {
@@ -125,7 +126,7 @@ const ClientDetails = () => {
     if (window.confirm('Are you sure you want to delete this client?')) {
       try {
         const response = await axios.delete(
-          `http://localhost:3000/api/v1/admin/remove/${id}`,
+          `${backendUrl}/api/v1/admin/remove/${id}`,
           {
             headers: {
               'Content-Type': 'application/json',

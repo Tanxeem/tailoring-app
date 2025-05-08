@@ -4,7 +4,7 @@ import { useNavigate, Outlet } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios'; 
 import { MdDashboard } from "react-icons/md";
-
+import {backendUrl} from '../../App';
 const DashboardLayout = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,17 +12,17 @@ const DashboardLayout = () => {
   const handleLogout = async () => {
     try {
       // Perform logout request
-      const response = await axios.post('http://localhost:3000/api/v1/user/logout', {}, {
+      const response = await axios.post(`${backendUrl}/api/v1/user/logout`, {}, {
         headers: {
           'Content-Type': 'application/json',
         },
-        withCredentials: true,  // Make sure cookies are sent along with the request
+        withCredentials: true,  
       });
 
-      // Check if response status is OK
+      
       if (response.status === 200) {
-        toast.success(response.data.message);  // Show success toast
-        navigate('/login');  // Redirect to login page after logout
+        toast.success(response.data.message);  
+        navigate('/login');  
       }
     } catch (err) {
       // Handle errors

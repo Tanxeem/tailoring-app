@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiUser, FiMail, FiLock, FiArrowRight } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { backendUrl } from '../../App';
 
 const CreateUsers = () => {
   const navigate = useNavigate();
@@ -54,11 +57,17 @@ const CreateUsers = () => {
 
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Registration data:', formData);
-      // Redirect after successful registration
-      navigate('/dashboard');
+      const response = await axios.post(`${backendUrl}/api/v1/user/create-user`, formData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true
+      });
+
+      if (response.status === 200) {
+        toast.success(response.data.message);
+        navigate('/admin/dashboard');
+      }
     } catch (error) {
       console.error('Registration error:', error);
       setErrors({ general: 'Registration failed. Please try again.' });

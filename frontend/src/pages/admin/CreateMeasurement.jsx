@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FiUser, FiPhone, FiMapPin, FiMail, FiScissors, FiSave } from 'react-icons/fi';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { backendUrl } from '../../App';
 
 const CreateMeasurement = () => {
   // Luxury color palette
@@ -46,7 +47,7 @@ const CreateMeasurement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3000/api/v1/admin/create-measurement', formData, {
+      const response = await axios.post(`${backendUrl}/api/v1/admin/create-measurement`, formData, {
         headers: {
           'Content-Type': 'application/json',
         },

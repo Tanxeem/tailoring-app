@@ -15,6 +15,9 @@ import CreateUsers from "./pages/admin/CreateUsers";
 import Dashboard from "./pages/admin/Dashboard";
 import ProtectedRoute from "./pages/auth/ProtectedRoute";
 import ClientDetails from "./pages/admin/ClientDetails";
+import ChangePassword from "./components/ChangePassword";
+
+export const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 function App() {
   return (
@@ -58,6 +61,7 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="create-user" element={<CreateUsers />} />
           <Route path="users" element={<AllUsers />} />
+          <Route path="users/change-password/:id" element={<ChangePassword />} />
           <Route path="create-measurement" element={<CreateMeasurement />} />
           <Route path="client-details" element={<ClientDetails />} />
         </Route>

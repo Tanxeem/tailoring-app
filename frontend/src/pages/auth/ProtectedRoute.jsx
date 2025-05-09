@@ -7,8 +7,6 @@ import { Navigate } from "react-router-dom";
 function ProtectedRoute() {
     const [isAuth, setIsAuth] = useState(null)
 
-    const navigate = useNavigate();
-
     useEffect( ()=> {
         axios.get(`${backendUrl}/api/v1/user/me`, {withCredentials: true})
         .then( () => setIsAuth(true))

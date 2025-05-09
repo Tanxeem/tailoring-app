@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react"
-import { Outlet, useNavigate } from "react-router"
+import { Outlet} from "react-router"
 import axios from "axios"   
 import { backendUrl } from "../../App";
+import { Navigate } from "react-router-dom";
 
 function ProtectedRoute() {
     const [isAuth, setIsAuth] = useState(null)
@@ -16,8 +17,8 @@ function ProtectedRoute() {
 
     if(isAuth === null) return <div>Loading...</div>;
   return (
-    isAuth ? <Outlet /> : navigate('/login')
-  )
+  isAuth ? <Outlet /> : <Navigate to="/login" replace />
+)
 }
 
 export default ProtectedRoute

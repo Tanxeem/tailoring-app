@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiUser, FiPhone, FiMapPin, FiMail, 
   FiEdit2, FiTrash2, FiChevronLeft, 
-  FiScissors, FiCalendar 
+  FiScissors, FiCalendar, FiSearch 
 } from 'react-icons/fi';
 import { CiRuler } from 'react-icons/ci';
 import axios from 'axios';
@@ -175,22 +175,22 @@ const ClientDetails = () => {
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.background }}>
       <motion.div
-        className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+        className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 lg:py-12"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
         {/* Main Header */}
         <motion.header
-          className="mb-8"
+          className="mb-4 md:mb-6 lg:mb-8"
           initial={{ y: -20 }}
           animate={{ y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-3xl font-serif font-bold tracking-wide" style={{ color: COLORS.primary }}>
+          <h1 className="text-2xl md:text-3xl font-serif font-bold tracking-wide" style={{ color: COLORS.primary }}>
             {selectedClient ? 'Client Details' : 'Client Manager'}
           </h1>
-          <p className="text-sm mt-2" style={{ color: COLORS.text }}>
+          <p className="text-xs md:text-sm mt-1 md:mt-2" style={{ color: COLORS.text }}>
             {selectedClient ? 'View and edit client measurements' : 'Manage your tailoring clients'}
           </p>
         </motion.header>
@@ -202,101 +202,160 @@ const ClientDetails = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            {/* Search  */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-              <div className="relative w-full sm:w-64">
+            {/* Search */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-3">
+              <div className="relative w-full">
                 <input
                   type="text"
                   placeholder="Search clients..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:ring-1"
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:ring-1 text-sm md:text-base"
                   style={{ 
                     borderColor: '#E0D6C9',
                     backgroundColor: '#FCFAF7'
                   }}
                 />
-                <FiUser className="absolute left-3 top-3 text-gray-400" />
+                <FiSearch className="absolute left-3 top-2.5 md:top-3 text-gray-400" />
               </div>
             </div>
 
-            {/* Clients Table */}
-            {filteredClients.length === 0 ? (
-              <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-                <p style={{ color: COLORS.text }}>No clients found</p>
-              </div>
-            ) : (
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b" style={{ borderColor: '#E0D6C9' }}>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Name</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Phone</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Email</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Created</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y" style={{ divideColor: '#E0D6C9' }}>
-                      {filteredClients.map(client => (
-                        <tr 
-                          key={client._id} 
-                          className="hover:bg-gray-50 cursor-pointer"
-                          onClick={() => handleSelectClient(client)}
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${COLORS.primary}20` }}>
-                                <FiUser style={{ color: COLORS.primary }} />
-                              </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium" style={{ color: COLORS.text }}>{client.customerName}</div>
-                                <div className="text-xs" style={{ color: COLORS.accent }}>{client.address?.split(',')[0]}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.text }}>
-                            {client.phone}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.text }}>
-                            {client.email}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: COLORS.text }}>
-                            {new Date(client.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleSelectClient(client);
-                                  setIsEditing(true);
-                                }}
-                                className="p-2 rounded-full hover:bg-gray-100"
-                                style={{ color: COLORS.primary }}
-                              >
-                                <FiEdit2 />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDelete(client._id);
-                                }}
-                                className="p-2 rounded-full hover:bg-red-50"
-                                style={{ color: '#DC2626' }}
-                              >
-                                <FiTrash2 />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            {/* Clients List - Mobile Cards */}
+            <div className="md:hidden">
+              {filteredClients.length === 0 ? (
+                <div className="bg-white rounded-xl shadow-lg p-6 text-center">
+                  <p style={{ color: COLORS.text }}>No clients found</p>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="grid gap-3">
+                  {filteredClients.map(client => (
+                    <div 
+                      key={client._id}
+                      className="bg-white rounded-xl shadow-lg p-4 cursor-pointer hover:bg-gray-50"
+                      onClick={() => handleSelectClient(client)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${COLORS.primary}20` }}>
+                            <FiUser style={{ color: COLORS.primary }} />
+                          </div>
+                          <div className="ml-3">
+                            <div className="text-sm font-medium" style={{ color: COLORS.text }}>{client.customerName}</div>
+                            <div className="text-xs flex items-center mt-1" style={{ color: COLORS.text }}>
+                              <FiPhone className="mr-1 text-gray-400" size={12} />
+                              {client.phone || 'N/A'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectClient(client);
+                              setIsEditing(true);
+                            }}
+                            className="p-1.5 rounded-full hover:bg-gray-100"
+                            style={{ color: COLORS.primary }}
+                          >
+                            <FiEdit2 size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(client._id);
+                            }}
+                            className="p-1.5 rounded-full hover:bg-red-50"
+                            style={{ color: '#DC2626' }}
+                          >
+                            <FiTrash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Clients Table - Desktop */}
+            <div className="hidden md:block">
+              {filteredClients.length === 0 ? (
+                <div className="bg-white rounded-xl shadow-xl p-8 text-center">
+                  <p style={{ color: COLORS.text }}>No clients found</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl shadow-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b" style={{ borderColor: '#E0D6C9' }}>
+                          <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Name</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Phone</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Email</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Created</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y" style={{ divideColor: '#E0D6C9' }}>
+                        {filteredClients.map(client => (
+                          <tr 
+                            key={client._id} 
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => handleSelectClient(client)}
+                          >
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${COLORS.primary}20` }}>
+                                  <FiUser style={{ color: COLORS.primary }} />
+                                </div>
+                                <div className="ml-3">
+                                  <div className="text-sm font-medium" style={{ color: COLORS.text }}>{client.customerName}</div>
+                                  <div className="text-xs" style={{ color: COLORS.accent }}>{client.address?.split(',')[0]}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm" style={{ color: COLORS.text }}>
+                              {client.phone}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm" style={{ color: COLORS.text }}>
+                              {client.email}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm" style={{ color: COLORS.text }}>
+                              {new Date(client.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                              <div className="flex justify-end space-x-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectClient(client);
+                                    setIsEditing(true);
+                                  }}
+                                  className="p-2 rounded-full hover:bg-gray-100"
+                                  style={{ color: COLORS.primary }}
+                                >
+                                  <FiEdit2 />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(client._id);
+                                  }}
+                                  className="p-2 rounded-full hover:bg-red-50"
+                                  style={{ color: '#DC2626' }}
+                                >
+                                  <FiTrash2 />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
 
@@ -311,7 +370,7 @@ const ClientDetails = () => {
               transition={{ duration: 0.3 }}
             >
               {/* Back and Action Buttons */}
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
                 <button 
                   onClick={() => setSelectedClient(null)}
                   className="flex items-center text-sm font-medium"
@@ -321,10 +380,10 @@ const ClientDetails = () => {
                   Back to Clients
                 </button>
                 
-                <div className="flex space-x-4">
+                <div className="flex space-x-2 sm:space-x-4 w-full sm:w-auto">
                   <motion.button
                     onClick={() => setIsEditing(!isEditing)}
-                    className="px-4 py-2 rounded-lg flex items-center"
+                    className="px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center flex-1 sm:flex-none"
                     style={{ 
                       backgroundColor: isEditing ? COLORS.accent : COLORS.primary,
                       color: 'white'
@@ -332,28 +391,28 @@ const ClientDetails = () => {
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <FiEdit2 className="mr-2" />
-                    {isEditing ? 'Cancel' : 'Edit'}
+                    <FiEdit2 className="mr-1 sm:mr-2" />
+                    <span className="text-xs sm:text-sm">{isEditing ? 'Cancel' : 'Edit'}</span>
                   </motion.button>
                   
                   <motion.button
                     onClick={() => handleDelete(selectedClient._id)}
-                    className="px-4 py-2 rounded-lg flex items-center bg-red-100"
+                    className="px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center flex-1 sm:flex-none bg-red-100"
                     style={{ color: '#DC2626' }}
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <FiTrash2 className="mr-2" />
-                    Delete
+                    <FiTrash2 className="mr-1 sm:mr-2" />
+                    <span className="text-xs sm:text-sm">Delete</span>
                   </motion.button>
                 </div>
               </div>
 
               {/* Client Card */}
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+              <div className="bg-white rounded-xl shadow-lg md:shadow-xl overflow-hidden">
                 {/* Client Header */}
                 <div 
-                  className="p-6 border-b"
+                  className="p-4 sm:p-6 border-b"
                   style={{ borderColor: '#E0D6C9', backgroundColor: '#FCFAF7' }}
                 >
                   {isEditing ? (
@@ -362,7 +421,7 @@ const ClientDetails = () => {
                       name="customerName"
                       value={editForm.customerName || ''}
                       onChange={handleEditChange}
-                      className="w-full px-4 py-2 rounded-lg border text-2xl font-serif font-bold"
+                      className="w-full px-4 py-2 rounded-lg border text-xl sm:text-2xl font-serif font-bold"
                       style={{ 
                         borderColor: COLORS.primary,
                         backgroundColor: 'white',
@@ -370,36 +429,36 @@ const ClientDetails = () => {
                       }}
                     />
                   ) : (
-                    <h1 className="text-2xl font-serif font-bold" style={{ color: COLORS.primary }}>
+                    <h1 className="text-xl sm:text-2xl font-serif font-bold" style={{ color: COLORS.primary }}>
                       {selectedClient.customerName}
                     </h1>
                   )}
-                  <div className="flex items-center mt-2">
-  <span className="text-sm flex items-center" style={{ color: COLORS.text }}>
-    <FiCalendar className="mr-1" />
-    Created: {new Date(selectedClient.createdAt).toLocaleDateString()}
-    {selectedClient.updatedAt && (
-      <>
-        <span className="mx-2">•</span>
-        Updated: {new Date(selectedClient.updatedAt).toLocaleDateString()}
-      </>
-    )}
-  </span>
-</div>
+                  <div className="flex items-center mt-1 sm:mt-2">
+                    <span className="text-xs sm:text-sm flex items-center" style={{ color: COLORS.text }}>
+                      <FiCalendar className="mr-1" />
+                      Created: {new Date(selectedClient.createdAt).toLocaleDateString()}
+                      {selectedClient.updatedAt && (
+                        <>
+                          <span className="mx-1 sm:mx-2">•</span>
+                          Updated: {new Date(selectedClient.updatedAt).toLocaleDateString()}
+                        </>
+                      )}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Client Details */}
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="p-4 sm:p-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Contact Information */}
                     <div>
-                      <h2 className="text-lg font-serif font-medium mb-4" style={{ color: COLORS.primary }}>
+                      <h2 className="text-base sm:text-lg font-serif font-medium mb-3 sm:mb-4" style={{ color: COLORS.primary }}>
                         Contact Information
                       </h2>
                       
-                      <div className="space-y-4">
+                      <div className="space-y-3 sm:space-y-4">
                         <div>
-                          <label className="block text-sm font-medium mb-1" style={{ color: COLORS.text }}>
+                          <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: COLORS.text }}>
                             Phone
                           </label>
                           {isEditing ? (
@@ -412,7 +471,7 @@ const ClientDetails = () => {
                                 name="phone"
                                 value={editForm.phone || ''}
                                 onChange={handleEditChange}
-                                className="pl-10 w-full px-4 py-2 rounded-lg border"
+                                className="pl-10 w-full px-3 sm:px-4 py-2 rounded-lg border text-sm sm:text-base"
                                 style={{ 
                                   borderColor: '#E0D6C9',
                                   backgroundColor: '#FCFAF7'
@@ -420,7 +479,7 @@ const ClientDetails = () => {
                               />
                             </div>
                           ) : (
-                            <p className="flex items-center">
+                            <p className="flex items-center text-sm sm:text-base">
                               <FiPhone className="mr-2 text-gray-400" />
                               {selectedClient.phone || 'N/A'}
                             </p>
@@ -428,7 +487,7 @@ const ClientDetails = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-1" style={{ color: COLORS.text }}>
+                          <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: COLORS.text }}>
                             Email
                           </label>
                           {isEditing ? (
@@ -441,7 +500,7 @@ const ClientDetails = () => {
                                 name="email"
                                 value={editForm.email || ''}
                                 onChange={handleEditChange}
-                                className="pl-10 w-full px-4 py-2 rounded-lg border"
+                                className="pl-10 w-full px-3 sm:px-4 py-2 rounded-lg border text-sm sm:text-base"
                                 style={{ 
                                   borderColor: '#E0D6C9',
                                   backgroundColor: '#FCFAF7'
@@ -449,7 +508,7 @@ const ClientDetails = () => {
                               />
                             </div>
                           ) : (
-                            <p className="flex items-center">
+                            <p className="flex items-center text-sm sm:text-base">
                               <FiMail className="mr-2 text-gray-400" />
                               {selectedClient.email || 'N/A'}
                             </p>
@@ -457,7 +516,7 @@ const ClientDetails = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-1" style={{ color: COLORS.text }}>
+                          <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: COLORS.text }}>
                             Address
                           </label>
                           {isEditing ? (
@@ -469,7 +528,7 @@ const ClientDetails = () => {
                                 name="address"
                                 value={editForm.address || ''}
                                 onChange={handleEditChange}
-                                className="pl-10 w-full px-4 py-2 rounded-lg border"
+                                className="pl-10 w-full px-3 sm:px-4 py-2 rounded-lg border text-sm sm:text-base"
                                 style={{ 
                                   borderColor: '#E0D6C9',
                                   backgroundColor: '#FCFAF7',
@@ -478,7 +537,7 @@ const ClientDetails = () => {
                               />
                             </div>
                           ) : (
-                            <p className="flex items-start">
+                            <p className="flex items-start text-sm sm:text-base">
                               <FiMapPin className="mr-2 mt-1 text-gray-400" />
                               {selectedClient.address || 'N/A'}
                             </p>
@@ -486,7 +545,7 @@ const ClientDetails = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-1" style={{ color: COLORS.text }}>
+                          <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: COLORS.text }}>
                             Notes
                           </label>
                           {isEditing ? (
@@ -494,7 +553,7 @@ const ClientDetails = () => {
                               name="notes"
                               value={editForm.notes || ''}
                               onChange={handleEditChange}
-                              className="w-full px-4 py-2 rounded-lg border"
+                              className="w-full px-3 sm:px-4 py-2 rounded-lg border text-sm sm:text-base"
                               style={{ 
                                 borderColor: '#E0D6C9',
                                 backgroundColor: '#FCFAF7',
@@ -502,7 +561,7 @@ const ClientDetails = () => {
                               }}
                             />
                           ) : (
-                            <p className="flex items-start">
+                            <p className="text-sm sm:text-base">
                               {selectedClient.notes || 'No notes available'}
                             </p>
                           )}
@@ -512,13 +571,13 @@ const ClientDetails = () => {
 
                     {/* Measurements */}
                     <div>
-                      <h2 className="text-lg font-serif font-medium mb-4 flex items-center" style={{ color: COLORS.primary }}>
+                      <h2 className="text-base sm:text-lg font-serif font-medium mb-3 sm:mb-4 flex items-center" style={{ color: COLORS.primary }}>
                         <FiScissors className="mr-2" /> Measurements (cm)
                       </h2>
                       
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-3 sm:gap-4">
                         {measurementFields.map(({ key, label }) => (
-                          <div key={key} className="bg-gray-50 p-3 rounded-lg">
+                          <div key={key} className="bg-gray-50 p-2 sm:p-3 rounded-lg">
                             <label className="block text-xs font-medium uppercase tracking-wider mb-1 flex items-center" style={{ color: COLORS.text }}>
                               <CiRuler className="mr-1" />
                               {label}
@@ -526,17 +585,17 @@ const ClientDetails = () => {
                             {isEditing ? (
                               <input
                                 type="number"
-                                name={key} // Changed from measurements.key to just key
+                                name={key}
                                 value={editForm[key] || ''}
                                 onChange={handleEditChange}
-                                className="w-full px-2 py-1 rounded border"
+                                className="w-full px-2 py-1 rounded border text-sm sm:text-base"
                                 style={{ 
                                   borderColor: '#E0D6C9',
                                   backgroundColor: 'white'
                                 }}
                               />
                             ) : (
-                              <p className="text-lg font-light" style={{ color: COLORS.primary }}>
+                              <p className="text-base sm:text-lg font-light" style={{ color: COLORS.primary }}>
                                 {selectedClient[key] || 'N/A'}
                               </p>
                             )}
@@ -549,33 +608,33 @@ const ClientDetails = () => {
 
                 {/* Save Button (when editing) */}
                 {isEditing && (
-                  <div className="p-6 border-t" style={{ borderColor: '#E0D6C9' }}>
+                  <div className="p-4 sm:p-6 border-t" style={{ borderColor: '#E0D6C9' }}>
                     <motion.button
-  onClick={handleSave}
-  className="w-full py-3 rounded-lg font-medium flex items-center justify-center"
-  style={{ 
-    backgroundColor: COLORS.primary,
-    color: 'white'
-  }}
-  whileHover={{ 
-    scale: 1.01,
-    boxShadow: '0 4px 12px rgba(139, 107, 74, 0.3)'
-  }}
-  whileTap={{ scale: 0.98 }}
-  disabled={saving}
->
-  {saving ? (
-    <>
-      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      Saving...
-    </>
-  ) : (
-    'Save Changes'
-  )}
-</motion.button>
+                      onClick={handleSave}
+                      className="w-full py-2 sm:py-3 rounded-lg font-medium flex items-center justify-center text-sm sm:text-base"
+                      style={{ 
+                        backgroundColor: COLORS.primary,
+                        color: 'white'
+                      }}
+                      whileHover={{ 
+                        scale: 1.01,
+                        boxShadow: '0 4px 12px rgba(139, 107, 74, 0.3)'
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      disabled={saving}
+                    >
+                      {saving ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Changes'
+                      )}
+                    </motion.button>
                   </div>
                 )}
               </div>

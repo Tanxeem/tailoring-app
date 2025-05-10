@@ -46,7 +46,8 @@ export const createMeasurement = async (req, res) => {
             length,
             neck,
             cuff,
-            notes
+            notes,
+            userId: req.user._id
         });
     
         await client.save();
@@ -66,8 +67,19 @@ export const createMeasurement = async (req, res) => {
 
 export const allClients = async (req, res) => {
     try {
-        const clients =await Client.find({});
-    if(!clients){
+        let clients;
+        if(req.user.role === 'admin') {
+        clients =await Client.find({}).populate('userId', 'name email');
+        }else if (req.user.role === 'tailor') {
+            clients = await Client.find({userId: req.user._id}).populate('userId', 'name email');
+        }else {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized Role"
+            })
+        }
+
+    if(!clients || clients.length === 0){
         res.status(401).json({
             success:false,
             message: "Clients not awaiable"

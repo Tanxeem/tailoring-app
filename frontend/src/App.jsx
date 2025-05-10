@@ -1,21 +1,16 @@
 import Navbar from "./components/Navbar";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from "./pages/public/Home";
 import About from "./pages/public/About";
 import Contact from "./pages/public/Contact";
 import Services from "./pages/public/Services";
 import Footer from "./components/Footer";
 import Login from "./pages/auth/Login";
-import DashboardLayout from "./pages/admin/DashboardLayout"; // New layout component
-import AllUsers from "./pages/admin/AllUsers";
-import CreateMeasurement from "./pages/admin/CreateMeasurement";
-import CreateUsers from "./pages/admin/CreateUsers";
-import Dashboard from "./pages/admin/Dashboard";
+import DashboardLayout from "./pages/admin/DashboardLayout";
 import ProtectedRoute from "./pages/auth/ProtectedRoute";
-import ClientDetails from "./pages/admin/ClientDetails";
-import ChangePassword from "./components/ChangePassword";
+import RoleBasedRoutes from "./pages/admin/RoleBasedRoutes";
 
 export const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -55,18 +50,16 @@ function App() {
         } />
         <Route path="/login" element={<Login />} />
 
-        {/* Admin Dashboard Routes */}
+        {/* Protected Admin/Tailor Routes */}
         <Route element={<ProtectedRoute />}>
-        <Route path="/admin" element={<DashboardLayout />}>
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="create-user" element={<CreateUsers />} />
-          <Route path="users" element={<AllUsers />} />
-          <Route path="users/change-password/:id" element={<ChangePassword />} />
-          <Route path="create-measurement" element={<CreateMeasurement />} />
-          <Route path="client-details" element={<ClientDetails />} />
-        </Route>
+          <Route path="/admin" element={<DashboardLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="*" element={<RoleBasedRoutes />} />
+          </Route>
         </Route>
 
+        {/* Catch-all route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );

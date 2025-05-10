@@ -112,8 +112,18 @@ export const logIn = async (req, res) => {
 
 export const allUsers = async (req, res) => {
     try {
-        const user = await User.find({});
-        if(!user){
+      let users;
+      if(req.user.role === 'admin'){
+        users = await User.find({});
+      } else if(req.user.role === 'tailor'){
+        users = await User.find({_id: req.user._id});
+      }else {
+        return res.status(403).json({
+          success:false,
+          message: "Unauthorized Role"
+        })
+      }
+      if(!users || users.length === 0){
             res.status(401).json({
                 success:false,
                 message: "Users not awaiable"
@@ -122,7 +132,7 @@ export const allUsers = async (req, res) => {
         res.status(200).json({
             success:true,
             message: "All users",
-            user
+            users
         })
     } catch (error) {
         return res.status(500).json({
@@ -264,7 +274,6 @@ export const removeUser = async (req, res) => {
         }
 
         const user = await User.findById(id);
-    console.log("update id ", user);
 
     if (!user) {
       return res.status(404).json({

@@ -27,12 +27,11 @@ const userSchema = new mongoose.Schema(
     avatar: {
       type: String
     },
-    forgotPasswordToken:{
+    role: {
       type: String,
-    },
-    forgotPasswordTokenExpiry : {
-      type: Date,
-  },
+      enum: ['admin', 'tailor'],
+      default: 'tailor'
+    }
   },
   { timestamps: true }
 );

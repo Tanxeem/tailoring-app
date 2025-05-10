@@ -2,19 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { 
+import {
   BarChart, PieChart, LineChart,
-  Bar, Pie, Line, XAxis, YAxis, 
-  CartesianGrid, Tooltip, Legend, 
+  Bar, Pie, Line, XAxis, YAxis,
+  CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, Cell
 } from 'recharts';
-import { 
-  FiUsers, FiScissors, FiUser, FiEdit, 
-  FiClipboard, FiTrendingUp, FiMail, 
-  FiPhone, FiMapPin, FiChevronDown, 
+import {
+  FiUsers, FiScissors, FiUser, FiEdit,
+  FiClipboard, FiTrendingUp, FiMail,
+  FiPhone, FiMapPin, FiChevronDown,
   FiChevronUp, FiCalendar
 } from 'react-icons/fi';
-import {backendUrl} from '../../App';
+import { backendUrl } from '../../App';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -50,10 +50,17 @@ const Dashboard = () => {
         },
         withCredentials: true
       });
-      setAdminUsers(response.data.user);
+      
+      if (response.data && response.data.users) {
+        setAdminUsers(response.data.users);
+      } else {
+        setAdminUsers([]);
+        setError('No admin users found');
+      }
     } catch (err) {
       setError('Failed to load admin users');
       console.error('Error fetching admin users:', err);
+      setAdminUsers([]);
     }
   };
 
@@ -66,27 +73,38 @@ const Dashboard = () => {
         },
         withCredentials: true
       });
-      setCustomers(response.data.clients);
+      
+      if (response.data && response.data.clients) {
+        setCustomers(response.data.clients);
+      } else {
+        setCustomers([]);
+        setError('No clients found');
+      }
     } catch (err) {
       setError('Failed to load customer data');
       console.error('Error fetching customers:', err);
+      setCustomers([]);
     }
   };
 
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      await Promise.all([fetchAdminUsers(), fetchCustomers()]);
+      try {
+        await Promise.all([fetchAdminUsers(), fetchCustomers()]);
+      } catch (err) {
+        setError('Failed to load dashboard data');
+      }
       setIsLoading(false);
     };
-    
+
     loadData();
   }, []);
 
   // Process customer data for charts
   const processCustomerData = () => {
-    if (!customers.length) return [];
-    
+    if (!customers || customers.length === 0) return [];
+
     const monthlyData = customers.reduce((acc, customer) => {
       const date = new Date(customer.createdAt || customer.createdDate || Date.now());
       const month = date.toLocaleString('default', { month: 'short' });
@@ -100,7 +118,7 @@ const Dashboard = () => {
       
       return acc;
     }, {});
-    
+
     return Object.values(monthlyData).slice(-5);
   };
 
@@ -108,26 +126,26 @@ const Dashboard = () => {
 
   // Summary stats
   const summaryStats = [
-    { 
-      title: "Admin Users", 
+    {
+      title: "Users",
       value: adminUsers.length,
       icon: <FiUser className="text-2xl" />,
       color: COLORS.admin,
       trend: "static"
     },
-    { 
-      title: "Total Customers", 
+    {
+      title: "Total Customers",
       value: customers.length,
       icon: <FiUsers className="text-2xl" />,
       color: COLORS.customer,
-      trend: customers.length > 0 ? `${Math.round((customers.length / 30) * 100)}% ↑` : "0%"
+      // trend: customers.length > 0 ? `${Math.round((customers.length / 30) * 100)}% ↑` : "0%"
     },
-    { 
-      title: "Total Measurements", 
-      value: customers.length,
+    {
+      title: "Total Measurements",
+      value: customers.length, 
       icon: <FiScissors className="text-2xl" />,
       color: COLORS.primary,
-      trend: customers.length > 0 ? `${Math.round((customers.length / 10) * 100)}% ↑` : "0%"
+      // trend: customers.length > 0 ? `${Math.round((customers.length / 10) * 100)}% ↑` : "0%"
     }
   ];
 
@@ -145,7 +163,7 @@ const Dashboard = () => {
             <div className="space-y-4">
               {adminUsers.map((user) => (
                 <div key={user._id} className="flex items-center p-3 border rounded-lg">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center mr-4" 
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center mr-4"
                     style={{ backgroundColor: `${COLORS.admin}20`, color: COLORS.admin }}>
                     <FiUser />
                   </div>
@@ -154,7 +172,7 @@ const Dashboard = () => {
                     <p className="text-sm text-gray-500">{user.email}</p>
                   </div>
                   <div className="text-sm text-gray-500">
-                    Joined {new Date(user.createdAt || user.createdDate).toLocaleDateString()}
+                    Joined {new Date(user.createdAt).toLocaleDateString()}
                   </div>
                 </div>
               ))}
@@ -206,18 +224,18 @@ const Dashboard = () => {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E0D6C9" />
-            <XAxis 
-              dataKey="month" 
-              axisLine={false} 
-              tickLine={false} 
+            <XAxis
+              dataKey="month"
+              axisLine={false}
+              tickLine={false}
               tick={{ fill: COLORS.text, fontSize: 12 }}
             />
-            <YAxis 
-              axisLine={false} 
-              tickLine={false} 
+            <YAxis
+              axisLine={false}
+              tickLine={false}
               tick={{ fill: COLORS.text, fontSize: 12 }}
             />
-            <Tooltip 
+            <Tooltip
               contentStyle={{
                 background: 'rgba(255, 255, 255, 0.96)',
                 border: `1px solid ${COLORS.primary}`,
@@ -397,7 +415,11 @@ const Dashboard = () => {
               <div className="text-red-500 mb-4">Error</div>
               <p className="text-center">{error}</p>
               <button 
-                onClick={() => window.location.reload()}
+                onClick={() => {
+                  setError(null);
+                  setIsLoading(true);
+                  Promise.all([fetchAdminUsers(), fetchCustomers()]).finally(() => setIsLoading(false));
+                }}
                 className="mt-4 px-4 py-2 rounded-lg text-white"
                 style={{ backgroundColor: COLORS.primary }}
               >
@@ -508,7 +530,7 @@ const Dashboard = () => {
                               <p className="font-medium">{user.name}</p>
                               <p className="text-sm text-gray-500">{user.email}</p>
                               <p className="text-xs text-gray-400 mt-1">
-                                Joined {new Date(user.createdAt || user.createdDate).toLocaleDateString()}
+                                Joined {new Date(user.createdAt).toLocaleDateString()}
                               </p>
                             </div>
                             <button className="ml-4 p-2 rounded-full hover:bg-gray-100">

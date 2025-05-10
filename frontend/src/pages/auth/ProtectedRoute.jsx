@@ -1,22 +1,46 @@
 import { useEffect, useState } from "react"
-import { Outlet} from "react-router"
-import axios from "axios"   
+import { Outlet, Navigate } from "react-router"
+import axios from "axios"
 import { backendUrl } from "../../App";
-import { Navigate } from "react-router-dom";
 
 function ProtectedRoute() {
-    const [isAuth, setIsAuth] = useState(null)
+  const [authState, setAuthState] = useState({
+    isAuth: null,
+    role: null,
+    loading: true
+  })
 
-    useEffect( ()=> {
-        axios.get(`${backendUrl}/api/v1/user/me`, {withCredentials: true})
-        .then( () => setIsAuth(true))
-        .catch( () => setIsAuth(false))
-    },[])
+  useEffect(() => {
+    axios.get(`${backendUrl}/api/v1/user/me`, {withCredentials: true})
+    .then((response) => {
+      setAuthState({
+        isAuth: true,
+        role: response.data.user.role,
+        loading: false
+      })
+    })
+    .catch(() => {
+      setAuthState({
+        isAuth: false,
+        role: null,
+        loading: false
+      })
+    })
+  }, [])
 
-    if(isAuth === null) return <div>Loading...</div>;
-  return (
-  isAuth ? <Outlet /> : <Navigate to="/login" replace />
-)
+  if(authState.loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
+      </div>
+    );
+  }
+
+  return authState.isAuth ? (
+    <Outlet context={{ role: authState.role }} />
+  ) : (
+    <Navigate to="/login" replace />
+  )
 }
 
 export default ProtectedRoute

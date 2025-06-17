@@ -239,7 +239,7 @@ const AllUsers = () => {
                               className="text-sm border rounded px-2 py-1 mr-2"
                               style={{ borderColor: COLORS.primary }}
                             >
-                              <option value="user">User</option>
+                              <option value="tailor">Tailor</option>
                               <option value="admin">Admin</option>
                             </select>
                             <button

@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import { FiArrowDown } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
+  const navigate = useNavigate();
   return (
     <section id="home" className="relative h-screen flex items-center">
       {/* Background Image with Overlay - Responsive */}
@@ -58,6 +59,7 @@ const Hero = () => {
               whileHover={{ scale: 1.05, boxShadow: "0 5px 15px rgba(245, 158, 11, 0.4)" }}
               whileTap={{ scale: 0.95 }}
               className="px-6 py-3 sm:px-8 sm:py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all text-sm sm:text-base"
+              onClick={() => navigate('/contact')}
             >
               Book Appointment
             </motion.button>
@@ -66,6 +68,7 @@ const Hero = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="px-6 py-3 sm:px-8 sm:py-3.5 bg-transparent border-2 border-white/30 text-white font-medium rounded-full hover:bg-white/10 hover:border-white/50 transition-all text-sm sm:text-base"
+              onClick={() => navigate('/services')}
             >
               Our Services
             </motion.button>

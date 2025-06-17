@@ -12,7 +12,7 @@ userRoutes.post('/logout', isLoggedIn, logOut)
 userRoutes.get('/allusers',isLoggedIn, allUsers)
 userRoutes.get('/me',isLoggedIn, getUser)
 userRoutes.delete('/remove/:id',isLoggedIn,isAdmin, removeUser)
-userRoutes.patch('/update/:id',isLoggedIn,isAdmin, updateUser)
+userRoutes.put('/update/:id',isLoggedIn,isAdmin, updateUser)
 userRoutes.put('/updatepassword/:id',isLoggedIn,isAdmin, validate(changePasswordValidator), updatePassword)
 
 

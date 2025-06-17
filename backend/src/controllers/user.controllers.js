@@ -208,22 +208,25 @@ export const removeUser = async (req, res) => {
     }
   
     try {
-      // Find and delete the user by ID
-      const user = await User.findByIdAndDelete(id);
+      // First find the user without deleting
+      const user = await User.findById(id);
 
-        if (user.role === "admin") {
-        return res.status(403).json({
-          success: false,
-          message: "Admin users cannot be deleted.",
-        });
-      }
-  
       if (!user) {
         return res.status(404).json({
           success: false,
           message: "User not found.",
         });
       }
+
+      // Check role before deletion
+      if (user.role === "admin") {
+        return res.status(403).json({
+          success: false,
+          message: "Admin users cannot be deleted.",
+        });
+      }
+      // Find and delete the user by ID
+      await User.findByIdAndDelete(id);
   
       // Successfully deleted user
       return res.status(200).json({

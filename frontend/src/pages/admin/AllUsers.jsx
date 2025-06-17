@@ -19,6 +19,8 @@ const AllUsers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingUserId, setEditingUserId] = useState(null);
+  const [selectedRole, setSelectedRole] = useState('');
   const navigate = useNavigate();
 
   const fetchUsers = async () => {
@@ -29,7 +31,6 @@ const AllUsers = () => {
         withCredentials: true
       });
 
-      // Updated to match backend response structure
       if (!response.data?.users) throw new Error('Invalid data format');
       setUsers(response.data.users);
     } catch (error) {
@@ -69,11 +70,46 @@ const AllUsers = () => {
     navigate(`/admin/users/change-password/${userId}`);
   };
 
+  const handleEditRole = (user) => {
+    setEditingUserId(user._id);
+    setSelectedRole(user.role);
+  };
+
+  const handleRoleChange = async () => {
+    if (!editingUserId) return;
+
+    try {
+      const response = await axios.put(
+        `${backendUrl}/api/v1/user/update/${editingUserId}`,
+        { role: selectedRole },
+        {
+          headers: { 'Content-Type': 'application/json' },
+          withCredentials: true
+        }
+      );
+
+      setUsers(users.map(user => 
+        user._id === editingUserId ? { ...user, role: selectedRole } : user
+      ));
+      setEditingUserId(null);
+      toast.success('User role updated successfully');
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      toast.error(error.response?.data?.message || 'Failed to update user role');
+    }
+  };
+
   const filteredUsers = users.filter(user => {
+    if (!searchTerm) return true;
+    
     const searchLower = searchTerm.toLowerCase();
-    const nameMatch = user?.name?.toLowerCase().includes(searchLower);
-    const emailMatch = user?.email?.toLowerCase().includes(searchLower);
-    return nameMatch || emailMatch;
+    const fieldsToSearch = [
+      user?.name?.toLowerCase() || '',
+      user?.email?.toLowerCase() || '',
+      user?.role?.toLowerCase() || ''
+    ];
+    
+    return fieldsToSearch.some(field => field.includes(searchLower));
   });
 
   if (loading) {
@@ -162,6 +198,7 @@ const AllUsers = () => {
                 <tr className="border-b" style={{ borderColor: '#E0D6C9' }}>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Role</th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Created</th>
                   <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.primary }}>Actions</th>
                 </tr>
@@ -169,7 +206,7 @@ const AllUsers = () => {
               <tbody className="divide-y" style={{ divideColor: '#E0D6C9' }}>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="px-6 py-4 text-center" style={{ color: COLORS.text }}>
+                    <td colSpan="5" className="px-6 py-4 text-center" style={{ color: COLORS.text }}>
                       {users.length === 0 ? 'No users found' : 'No matching users found'}
                     </td>
                   </tr>
@@ -184,7 +221,6 @@ const AllUsers = () => {
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium" style={{ color: COLORS.text }}>{user.name}</div>
-                            <div className="text-xs text-gray-500">{user.role}</div>
                           </div>
                         </div>
                       </td>
@@ -193,6 +229,32 @@ const AllUsers = () => {
                           <FiMail className="mr-2 text-gray-400" />
                           {user.email}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {editingUserId === user._id ? (
+                          <div className="flex items-center">
+                            <select
+                              value={selectedRole}
+                              onChange={(e) => setSelectedRole(e.target.value)}
+                              className="text-sm border rounded px-2 py-1 mr-2"
+                              style={{ borderColor: COLORS.primary }}
+                            >
+                              <option value="user">User</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                            <button
+                              onClick={handleRoleChange}
+                              className="px-2 py-1 text-xs rounded text-white"
+                              style={{ backgroundColor: COLORS.primary }}
+                            >
+                              Save
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="text-sm" style={{ color: COLORS.text }}>
+                            {user.role}
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm" style={{ color: COLORS.text }}>
@@ -207,6 +269,14 @@ const AllUsers = () => {
                             style={{ backgroundColor: COLORS.primary }}
                           >
                             Change Password
+                          </button>
+                          <button
+                            onClick={() => handleEditRole(user)}
+                            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                            style={{ color: COLORS.primary }}
+                            title="Edit Role"
+                          >
+                            <FiEdit />
                           </button>
                           <button
                             onClick={() => handleDelete(user._id)}
@@ -243,7 +313,30 @@ const AllUsers = () => {
                         </div>
                         <div className="ml-3">
                           <div className="text-sm font-medium" style={{ color: COLORS.text }}>{user.name}</div>
-                          <div className="text-xs text-gray-500">{user.role}</div>
+                          <div className="text-xs text-gray-500">
+                            {editingUserId === user._id ? (
+                              <div className="flex items-center mt-1">
+                                <select
+                                  value={selectedRole}
+                                  onChange={(e) => setSelectedRole(e.target.value)}
+                                  className="text-xs border rounded px-1 py-0.5 mr-1"
+                                  style={{ borderColor: COLORS.primary }}
+                                >
+                                  <option value="user">User</option>
+                                  <option value="admin">Admin</option>
+                                </select>
+                                <button
+                                  onClick={handleRoleChange}
+                                  className="px-1 py-0.5 text-xs rounded text-white"
+                                  style={{ backgroundColor: COLORS.primary }}
+                                >
+                                  Save
+                                </button>
+                              </div>
+                            ) : (
+                              user.role
+                            )}
+                          </div>
                           <div className="text-xs mt-1 flex items-center" style={{ color: COLORS.text }}>
                             <FiMail className="mr-1 text-gray-400" />
                             {user.email}
@@ -264,6 +357,14 @@ const AllUsers = () => {
                           title="Change Password"
                         >
                           <FiLock size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleEditRole(user)}
+                          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                          style={{ color: COLORS.primary }}
+                          title="Edit Role"
+                        >
+                          <FiEdit size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(user._id)}
